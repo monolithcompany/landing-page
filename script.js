@@ -1,11 +1,11 @@
 // ==========================================
-// 1. CONFIGURACIÓN
+// 1. CONFIGURACIÓN DE SEGURIDAD
 // ==========================================
-// ¡YA NO NECESITAS LA API KEY AQUÍ! 
-// La seguridad la maneja Vercel en el backend.
+// Nota: La API Key se configura en el panel de Vercel (Environment Variables).
+// El frontend solo se comunica con tu endpoint seguro: /api/chat
 
 // ==========================================
-// 2. EFECTO HACKER (Logo)
+// 2. EFECTO HACKER (Logo Desencriptado)
 // ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_!@#$%^&*";
 const logo = document.querySelector("#hacker-logo");
@@ -25,13 +25,8 @@ function startHackerEffect() {
     }, 30);
 }
 
-window.onload = () => {
-    startHackerEffect();
-    console.log("Monolith Core: Online & Secure via Vercel.");
-};
-
 // ==========================================
-// 3. CHAT IA (CONECTADO A VERCEL SERVERLESS)
+// 3. LÓGICA DEL CHAT AI (Ventas Monolith)
 // ==========================================
 const inputField = document.getElementById("user-input");
 const chatOutput = document.getElementById("chat-output");
@@ -41,51 +36,57 @@ async function handleSendMessage() {
     let userText = inputField.value;
     if (userText.trim() === "") return;
 
-    // UI: Mostrar mensaje y bloquear controles
+    // A. UI: Mostrar mensaje del usuario y bloquear controles
     addMessage(userText, 'user-msg');
     inputField.value = "";
     inputField.disabled = true;
     sendBtn.disabled = true;
 
-    // UI: Mostrar "Pensando..."
-    const loadingId = addMessage("Conectando con servidor seguro...", 'bot-msg', true);
+    // B. UI: Mostrar placeholder de carga
+    const loadingId = addMessage("Sincronizando con Neural Core...", 'bot-msg', true);
 
     try {
-        // LLAMADA AL BACKEND DE VERCEL (Seguro)
-        const responseText = await callBackendAPI(userText);
+        // C. API: Llamada al backend de Vercel
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userText })
+        });
+
+        if (!response.ok) throw new Error("Error en la conexión del servidor.");
+
+        const data = await response.json();
         
-        // UI: Mostrar respuesta real
-        updateMessage(loadingId, responseText);
+        // D. UI: Actualizar con la respuesta de la IA (Typewriter effect)
+        updateMessage(loadingId, data.reply);
+
     } catch (error) {
-        console.error("Error chat:", error);
-        updateMessage(loadingId, "ERROR 500: Fallo de conexión con Vercel.");
+        console.error("Chat Error:", error);
+        updateMessage(loadingId, "ERROR_CRÍTICO: Enlace interrumpido. Contacta directamente a monolith872@gmail.com.");
     } finally {
-        // UI: Desbloquear todo
+        // E. UI: Reactivar controles
         inputField.disabled = false;
         sendBtn.disabled = false;
         inputField.focus();
     }
 }
 
-// Eventos de envío
+// --- Listeners del Chat ---
 if (sendBtn) sendBtn.addEventListener("click", handleSendMessage);
-inputField.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleSendMessage();
-});
+if (inputField) {
+    inputField.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleSendMessage();
+    });
+}
 
-// --- FUNCIONES DE UI ---
-
+// --- Funciones de Interfaz de Chat ---
 function addMessage(text, className, isLoading = false) {
     let div = document.createElement("div");
     div.classList.add(className);
     if(isLoading) div.id = "loading-" + Date.now();
     
-    // Si es bot, formatea saltos de línea
-    if (className === 'bot-msg') {
-        div.innerHTML = "> " + text.replace(/\n/g, "<br>");
-    } else {
-        div.innerText = text;
-    }
+    // El bot siempre empieza con el prompt ">"
+    div.innerHTML = (className === 'bot-msg' ? "> " : "") + text.replace(/\n/g, "<br>");
     
     chatOutput.appendChild(div);
     chatOutput.scrollTop = chatOutput.scrollHeight;
@@ -95,80 +96,53 @@ function addMessage(text, className, isLoading = false) {
 function updateMessage(elementId, newText) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    
-    if (!newText) newText = "Sin datos.";
 
     el.innerHTML = "> "; 
     let i = 0;
-    let speed = 10; 
+    let speed = 12; // Velocidad de escritura
     
     function typeWriter() {
         if (i < newText.length) {
             el.innerHTML += newText.charAt(i);
             i++;
-            chatOutput.scrollTop = chatOutput.scrollHeight;
+            chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll dinámico
             setTimeout(typeWriter, speed);
         }
     }
     typeWriter();
 }
 
-// --- FUNCIÓN DE CONEXIÓN SEGURA (VERCEL) ---
-
-async function callBackendAPI(userMessage) {
-    try {
-        // Aquí es donde ocurre la magia: Llamamos a tu propia API en Vercel
-        // No llamamos a Groq directamente.
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ message: userMessage })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.reply; // La respuesta limpia de la IA
-
-    } catch (error) {
-        console.error("Fallo Fetch Vercel:", error);
-        return "ERROR DE RED: No se pudo conectar con el servidor de Vercel.";
-    }
-}
-
 // ==========================================
-// 4. TEMA (Dark/Light Mode)
+// 4. GESTIÓN DE TEMAS (Modo Claro/Oscuro)
 // ==========================================
 const themeToggle = document.getElementById('theme-toggle');
 const htmlElement = document.documentElement;
 const iconElement = themeToggle ? themeToggle.querySelector('i') : null;
 
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-    htmlElement.setAttribute('data-theme', savedTheme);
-    if(iconElement) updateIcon(savedTheme);
-}
+const savedTheme = localStorage.getItem('theme') || 'dark';
+htmlElement.setAttribute('data-theme', savedTheme);
+if(iconElement) updateIcon(savedTheme);
 
 if (themeToggle) {
     themeToggle.addEventListener('click', () => {
-        const currentTheme = htmlElement.getAttribute('data-theme') || 'dark';
+        const currentTheme = htmlElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         
         htmlElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        if(iconElement) updateIcon(newTheme);
+        updateIcon(newTheme);
     });
 }
 
 function updateIcon(theme) {
     if (!iconElement) return;
-    if(theme === 'dark') {
-        iconElement.classList.replace('fa-moon', 'fa-sun');
-    } else {
-        iconElement.classList.replace('fa-sun', 'fa-moon');
-    }
+    iconElement.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 }
+
+// ==========================================
+// 5. INICIALIZACIÓN
+// ==========================================
+window.onload = () => {
+    startHackerEffect();
+    console.log("Monolith System v.1.0.2 Online.");
+};
