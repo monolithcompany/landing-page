@@ -47,7 +47,7 @@ export default async function handler(req, res) {
                     { role: "system", content: systemPrompt },
                     { role: "user", content: message }
                 ],
-                model: "llama3-70b-8192",
+                model: "openai/gpt-oss-120b",
                 temperature: 0.4, // Temperatura baja para que sea muy obediente y no invente
                 max_tokens: 300
             })
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error("Fallo en el servidor:", error);
         return res.status(500).json({ 
-            reply: "ERROR_CONEXION: Neural Link interrumpido. Contacta a monolith872@gmail.com." 
+            reply: "Hola soy CORE AI, hoy estoy fuera de mi hora laboral, contacta a los humanos al correo: monolith872@gmail.com." 
         });
     }
 }
