@@ -36,7 +36,7 @@ export default async function handler(req, res) {
                     { role: "system", content: systemPrompt },
                     { role: "user", content: message }
                 ],
-                model: "llama3-70b-8192",
+                model: "openai/gpt-oss-120b",
                 temperature: 0.5,
                 max_tokens: 300
             })
