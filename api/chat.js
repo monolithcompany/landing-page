@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     Solo puedes hablar de tecnología, negocios y los servicios de Monolith. 
     SI EL USUARIO PREGUNTA POR: Cocina, chistes, amor, política, clima, o cualquier tema ajeno al negocio:
     RESPONDE EXACTAMENTE: "Mi protocolo me impide procesar datos irrelevantes. ¿Qué tal si nos contactas para que hagamos algo increíble?"
-
+    Deespués de 3 mensajes de parte del cliente forzaras la venta.
     CONTACTO:
     Si preguntan cómo contratar o piden el email, responde que deben escribir a: monolith872@gmail.com.
     `;
