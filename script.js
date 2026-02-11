@@ -1,7 +1,8 @@
 // ==========================================
 // 1. CONFIGURACIÓN
 // ==========================================
-const GROQ_API_KEY = "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"; 
+// ¡YA NO NECESITAS LA API KEY AQUÍ! 
+// La seguridad la maneja Vercel en el backend.
 
 // ==========================================
 // 2. EFECTO HACKER (Logo)
@@ -26,11 +27,11 @@ function startHackerEffect() {
 
 window.onload = () => {
     startHackerEffect();
-    console.log("Monolith Core: Online.");
+    console.log("Monolith Core: Online & Secure via Vercel.");
 };
 
 // ==========================================
-// 3. CHAT IA (MODO VENTAS AGRESIVO)
+// 3. CHAT IA (CONECTADO A VERCEL SERVERLESS)
 // ==========================================
 const inputField = document.getElementById("user-input");
 const chatOutput = document.getElementById("chat-output");
@@ -40,39 +41,46 @@ async function handleSendMessage() {
     let userText = inputField.value;
     if (userText.trim() === "") return;
 
-    // UI Updates
+    // UI: Mostrar mensaje y bloquear controles
     addMessage(userText, 'user-msg');
     inputField.value = "";
     inputField.disabled = true;
     sendBtn.disabled = true;
 
-    const loadingId = addMessage("Analizando solicitud...", 'bot-msg', true);
+    // UI: Mostrar "Pensando..."
+    const loadingId = addMessage("Conectando con servidor seguro...", 'bot-msg', true);
 
     try {
-        const response = await callGroqAPI(userText);
-        updateMessage(loadingId, response);
+        // LLAMADA AL BACKEND DE VERCEL (Seguro)
+        const responseText = await callBackendAPI(userText);
+        
+        // UI: Mostrar respuesta real
+        updateMessage(loadingId, responseText);
     } catch (error) {
         console.error("Error chat:", error);
-        updateMessage(loadingId, "ERROR 500: Fallo de conexión.");
+        updateMessage(loadingId, "ERROR 500: Fallo de conexión con Vercel.");
     } finally {
+        // UI: Desbloquear todo
         inputField.disabled = false;
         sendBtn.disabled = false;
         inputField.focus();
     }
 }
 
+// Eventos de envío
 if (sendBtn) sendBtn.addEventListener("click", handleSendMessage);
-
 inputField.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handleSendMessage();
 });
+
+// --- FUNCIONES DE UI ---
 
 function addMessage(text, className, isLoading = false) {
     let div = document.createElement("div");
     div.classList.add(className);
     if(isLoading) div.id = "loading-" + Date.now();
     
-    // Si es mensaje del bot, convertir saltos de línea en <br>
+    // Si es bot, formatea saltos de línea
     if (className === 'bot-msg') {
         div.innerHTML = "> " + text.replace(/\n/g, "<br>");
     } else {
@@ -80,7 +88,6 @@ function addMessage(text, className, isLoading = false) {
     }
     
     chatOutput.appendChild(div);
-    // SCROLL AUTOMÁTICO AL FONDO
     chatOutput.scrollTop = chatOutput.scrollHeight;
     return div.id;
 }
@@ -88,7 +95,8 @@ function addMessage(text, className, isLoading = false) {
 function updateMessage(elementId, newText) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    if (!newText) newText = "Sin respuesta del servidor.";
+    
+    if (!newText) newText = "Sin datos.";
 
     el.innerHTML = "> "; 
     let i = 0;
@@ -98,58 +106,42 @@ function updateMessage(elementId, newText) {
         if (i < newText.length) {
             el.innerHTML += newText.charAt(i);
             i++;
-            chatOutput.scrollTop = chatOutput.scrollHeight; // Mantener scroll abajo mientras escribe
+            chatOutput.scrollTop = chatOutput.scrollHeight;
             setTimeout(typeWriter, speed);
         }
     }
     typeWriter();
 }
 
-async function callGroqAPI(userMessage) {
-    // --- AQUÍ ESTÁ EL CEREBRO DE VENTAS ---
-    const systemPrompt = `
-    ERES: Monolith AI, un asistente de ventas de una empresa de tecnología de élite.
-    OBJETIVO: Vender Automatización, Software a Medida y Landing Pages.
-    
-    REGLA DE ORO (HIPER-ENFOQUE): 
-    Solo puedes hablar de servicios de tecnología y negocios.
-    
-    SI EL USUARIO PREGUNTA ALGO FUERA DEL TEMA (Cocina, clima, chistes, política, amor, etc):
-    Debes responder EXACTAMENTE: "Mi protocolo me impide procesar datos irrelevantes. ¿Qué tal si nos contactas para que hagamos algo increíble?"
-    
-    TONO: Profesional, directo, futurista. No uses emojis.
-    `;
+// --- FUNCIÓN DE CONEXIÓN SEGURA (VERCEL) ---
 
+async function callBackendAPI(userMessage) {
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // Aquí es donde ocurre la magia: Llamamos a tu propia API en Vercel
+        // No llamamos a Groq directamente.
+        const response = await fetch("/api/chat", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${GROQ_API_KEY}`,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userMessage }
-                ],
-                model: "llama3-70b-8192", 
-                temperature: 0.5, // Temperatura baja para que sea más obediente
-                max_tokens: 300
-            })
+            body: JSON.stringify({ message: userMessage })
         });
 
-        if (!response.ok) throw new Error("API Error");
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
 
         const data = await response.json();
-        return data.choices[0].message.content;
+        return data.reply; // La respuesta limpia de la IA
 
     } catch (error) {
-        return "ERROR DE RED: Verifica tu conexión.";
+        console.error("Fallo Fetch Vercel:", error);
+        return "ERROR DE RED: No se pudo conectar con el servidor de Vercel.";
     }
 }
 
 // ==========================================
-// 4. TEMA
+// 4. TEMA (Dark/Light Mode)
 // ==========================================
 const themeToggle = document.getElementById('theme-toggle');
 const htmlElement = document.documentElement;
